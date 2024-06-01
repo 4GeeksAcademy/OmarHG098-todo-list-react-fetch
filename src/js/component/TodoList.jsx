@@ -4,6 +4,7 @@ const TodoList = () => {
   const urlAPI = "https://playground.4geeks.com/todo";
   const [task, setTask] = useState("");
   const [tasksArray, setTasksArray] = useState([]);
+  const [user, setUser] = useState("");
   const [userData, setUserData] = useState({
     name: "",
     id: "",
@@ -15,52 +16,105 @@ const TodoList = () => {
 
   async function getUserInfo() {
     try {
-      const response = await fetch(`https://playground.4geeks.com/todo/users/OmarHG098`);
-      const infoUser = response.json();
-      console.log(infoUser);
-      setUserData(infoUser);
+      const response = await fetch(
+        `https://playground.4geeks.com/todo/users/OmarHG098`
+      );
+      const data = await response.json();
+      setUserData(data);
+      console.log(data);
+      setTasksArray(data.todos);
     } catch (e) {
       console.log(e);
     }
   }
 
-  function handleChange (e) {
-    setUserData({... user, [e.target.name]: e.target.value});
-  }
-
-  useEffect(()=> {
-    getUserInfo();
-  }, [])
-
-  function addTask(event) {
-    if (event.key === "Enter") {
-      setTask(event.target.value);
-      setTasksArray([...tasksArray, task]);
+  async function createTask(event) {
+    if (event.key != "Enter") return;
+    event.target.value = "";
+    try {
+      const response = await fetch(
+        `https://playground.4geeks.com/todo/todos/OmarHG098`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            label: task,
+            is_done: false,
+          }),
+          headers: {
+            "Content-type": "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("No se pudo crear la tarea");
+      }
+      const data = await response.json();
+      getUserInfo();
+    } catch (e) {
+      console.log(e);
     }
   }
 
-  function deleteTask(id) {
-    const eraseTask = tasksArray.filter((task, index) => index !== id);
-    setTasksArray(eraseTask);
+  async function eraseTask(id) {
+    try {
+      const response = await fetch(
+        `https://playground.4geeks.com/todo/todos/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("No se pudo borrar la tarea");
+      }
+      const eraseTask = tasksArray.filter((task, index) => index !== id);
+      setTasksArray(eraseTask);
+    } catch (e) {
+      console.log(e);
+    }
   }
+
+  function handleChange(e) {
+    setUserData({ ...userData, [e.target.label]: e.target.value });
+  }
+
+ 
+
+  useEffect(() => {
+    getUserInfo();
+  }, []);
 
   return (
     <div className="container-flex align-items-center">
       <div className="pt-2 fs-1 text-secondary">todos</div>
       <div className="card mt-3 mx-auto p-1" style={{ width: "30rem" }}>
-        <input className="form-control"
-        type="text"
-        placeholder="Username"
-        name="name"
-        value={userData.name}
-        >
+        <input
+          className="form-control"
+          type="text"
+          placeholder="Username"
+          name="name"
+          value={userData.name}
+          onChange={(event) => handleChange(event)}
+        ></input>
+        <div className="d-flex justify-content-between px-3 my-2 bg-white">
+          <button
+            type="button"
+            className="btn btn-outline-primary btn-sm border-0 "
+          >
+            Create user
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm border-0 "
+          >
+            Delete user
+          </button>
+        </div>
 
-        </input>
         <input
           className="form-control"
           type="text"
           placeholder="What's next?"
-          onKeyDown={(event) => addTask(event)}
+          onKeyDown={(event) => createTask(event)}
           onChange={(event) => setTask(event.target.value)}
           value={task}
         />
@@ -71,11 +125,11 @@ const TodoList = () => {
                 className="list-group-item d-flex justify-content-between px-3 tarea"
                 key={`task-${id}`}
               >
-                {task}
+                {task.label}
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm border-0 hide"
-                  onClick={() => deleteTask(id)}
+                  onClick={() => eraseTask(id)}
                 >
                   x
                 </button>
