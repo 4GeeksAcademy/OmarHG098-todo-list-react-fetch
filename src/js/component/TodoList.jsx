@@ -68,16 +68,15 @@ const TodoList = () => {
       }
       const eraseTask = tasksArray.filter((task, index) => index !== id);
       setTasksArray(eraseTask);
+      getUserInfo();
     } catch (e) {
       console.log(e);
     }
   }
 
-  function handleChange(e) {
-    setUserData({ ...userData, [e.target.label]: e.target.value });
-  }
-
- 
+  // function handleChange(e) {
+  //   setUserData({ ...userData, [e.target.label]: e.target.value });
+  // }
 
   useEffect(() => {
     getUserInfo();
@@ -129,7 +128,7 @@ const TodoList = () => {
                 <button
                   type="button"
                   className="btn btn-outline-secondary btn-sm border-0 hide"
-                  onClick={() => eraseTask(id)}
+                  onClick={() => eraseTask(task.id)}
                 >
                   x
                 </button>
