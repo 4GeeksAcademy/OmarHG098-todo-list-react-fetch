@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 const TodoList = () => {
-  const urlAPI = "https://playground.4geeks.com/todo";
+  const urlAPI = "https://playground.4geeks.com/todo/";
   const [task, setTask] = useState("");
   const [tasksArray, setTasksArray] = useState([]);
-  const [user, setUser] = useState("");
   const [userData, setUserData] = useState({
-    name: "",
+    name: "OmarHG098",
     id: "",
     todos: {
       label: "",
@@ -14,11 +13,48 @@ const TodoList = () => {
     },
   });
 
+  async function createUser() {
+    try {
+      const response = await fetch(`${urlAPI}users/${userData.name}`, {
+        method: "POST",
+        // body: JSON.stringify({ name: userData.name }),
+        headers: {
+          "Content-type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("No se pudo crear el usaurio");
+      }
+      const data = await response.json();
+      getUserInfo();
+      ("");
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function deleteUser(name) {
+    try {
+      const response = await fetch(`${urlAPI}users/${name}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("No se pudo borrar el usario ");
+      }
+      // setUserData.name("");
+      getUserInfo();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   async function getUserInfo() {
     try {
-      const response = await fetch(
-        `https://playground.4geeks.com/todo/users/OmarHG098`
-      );
+      const response = await fetch(`${urlAPI}users/${userData.name}`);
+      if (response.status === 404) {
+        createUser();
+        return;
+      }
       const data = await response.json();
       setUserData(data);
       console.log(data);
@@ -32,24 +68,22 @@ const TodoList = () => {
     if (event.key != "Enter") return;
     event.target.value = "";
     try {
-      const response = await fetch(
-        `https://playground.4geeks.com/todo/todos/OmarHG098`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            label: task,
-            is_done: false,
-          }),
-          headers: {
-            "Content-type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${urlAPI}todos/${userData.name}`, {
+        method: "POST",
+        body: JSON.stringify({
+          label: task,
+          is_done: false,
+        }),
+        headers: {
+          "Content-type": "application/json",
+        },
+      });
       if (!response.ok) {
         throw new Error("No se pudo crear la tarea");
       }
       const data = await response.json();
       getUserInfo();
+      setTask("");
     } catch (e) {
       console.log(e);
     }
@@ -74,9 +108,9 @@ const TodoList = () => {
     }
   }
 
-  // function handleChange(e) {
-  //   setUserData({ ...userData, [e.target.label]: e.target.value });
-  // }
+  function handleChange(event) {
+    setUserData({ ...userData, name: event.target.value });
+  }
 
   useEffect(() => {
     getUserInfo();
@@ -97,13 +131,15 @@ const TodoList = () => {
         <div className="d-flex justify-content-between px-3 my-2 bg-white">
           <button
             type="button"
-            className="btn btn-outline-primary btn-sm border-0 "
+            className="btn btn-outline-primary btn-sm border-0"
+            onClick={() => createUser()}
           >
             Create user
           </button>
           <button
             type="button"
             className="btn btn-outline-danger btn-sm border-0 "
+            onClick={() => deleteUser(userData.name)}
           >
             Delete user
           </button>
