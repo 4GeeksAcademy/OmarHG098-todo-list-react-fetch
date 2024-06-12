@@ -27,7 +27,6 @@ const TodoList = () => {
       }
       const data = await response.json();
       getUserInfo();
-      ("");
     } catch (e) {
       console.log(e);
     }
